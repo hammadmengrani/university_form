@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,9 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function ApplySuccessPage() {
-  const searchParams = useSearchParams();
-  const appId = searchParams.get("appId");
+type ApplySuccessPageProps = {
+  searchParams: Promise<{ appId?: string }>;
+};
+
+export default async function ApplySuccessPage({ searchParams }: ApplySuccessPageProps) {
+  const params = await searchParams;
+  const appId = params.appId;
 
   return (
     <main className="min-h-screen w-full bg-background p-4 md:p-8">
