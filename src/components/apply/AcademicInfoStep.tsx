@@ -43,7 +43,7 @@ export default function AcademicInfoStep() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Highest Qualification</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your qualification" />
@@ -78,7 +78,7 @@ export default function AcademicInfoStep() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Passing Year</FormLabel>
-              <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
+              <Select onValueChange={(value) => field.onChange(parseInt(value))} value={String(field.value)}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select passing year" />
@@ -103,7 +103,7 @@ export default function AcademicInfoStep() {
                     <FormControl>
                         <RadioGroup
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             className="flex items-center space-x-4"
                         >
                             <FormItem className="flex items-center space-x-2 space-y-0">
