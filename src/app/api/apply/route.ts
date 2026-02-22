@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase-server';
 import { applicationSchema } from '@/lib/validations';
 import { format } from 'date-fns';
+import type { DocumentType } from '@/types';
+
+const DOCUMENT_TYPES: DocumentType[] = [
+    'cnic_copy',
+    'matric_cert',
+    'fsc_cert',
+    'domicile',
+    'photos',
+    'challan',
+    'character_cert',
+];
 
 async function generateApplicationId(supabase: ReturnType<typeof createAdminClient>): Promise<string> {
     const year = new Date().getFullYear();
@@ -19,7 +29,9 @@ async function generateApplicationId(supabase: ReturnType<typeof createAdminClie
             .eq('application_id', newAppId)
             .single();
 
-        if (!data && !error) {
+        if (error && error.code === 'PGRST116') {
+            isUnique = true;
+        } else if (!data && !error) {
             isUnique = true;
         } else if (error && error.code !== 'PGRST116') {
             // An actual error occurred, other than 'no rows found'
@@ -59,7 +71,16 @@ export async function POST(request: Request) {
 
         const applicationId = await generateApplicationId(supabase);
         
-        const { uploadedFiles, ...applicantData } = parsedData.data;
+        const {
+            cnic_copy,
+            matric_cert,
+            fsc_cert,
+            domicile,
+            photos,
+            challan,
+            character_cert,
+            ...applicantData
+        } = parsedData.data;
 
         // Calculate percentage
         const percentage = applicantData.total_marks
@@ -86,21 +107,35 @@ export async function POST(request: Request) {
         }
 
         // Now, insert document records
-        const documentRecords = Object.entries(parsedData.data.documentsSchema)
-            .map(([docType, fileUrl]) => ({
+        const documentPayload: Record<DocumentType, string | undefined> = {
+            cnic_copy,
+            matric_cert,
+            fsc_cert,
+            domicile,
+            photos,
+            challan,
+            character_cert,
+        };
+
+        const documentRecords = DOCUMENT_TYPES
+            .map((docType) => ({ docType, fileUrl: documentPayload[docType] }))
+            .filter((item) => Boolean(item.fileUrl))
+            .map(({ docType, fileUrl }) => ({
                 applicant_id: newApplicant.id,
                 document_type: docType,
-                file_url: fileUrl,
-                file_name: fileUrl.split('/').pop() || 'unknown',
+                file_url: fileUrl as string,
+                file_name: (fileUrl as string).split('/').pop() || 'unknown',
             }));
 
-        const { error: docError } = await supabase
-            .from('applicant_documents')
-            .insert(documentRecords);
+        if (documentRecords.length > 0) {
+            const { error: docError } = await supabase
+                .from('applicant_documents')
+                .insert(documentRecords);
 
-        if (docError) {
-             console.error('Supabase document insert error:', docError);
-            // Non-critical, application is created. Log this for follow-up.
+            if (docError) {
+                console.error('Supabase document insert error:', docError);
+                // Non-critical, application is created. Log this for follow-up.
+            }
         }
 
         // TODO: Send confirmation email via Resend
@@ -114,6 +149,6 @@ export async function POST(request: Request) {
 
     } catch (e: any) {
         console.error('API Error:', e);
-        return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
+        return NextResponse.json({ error: e?.message || 'An internal server error occurred.' }, { status: 500 });
     }
 }

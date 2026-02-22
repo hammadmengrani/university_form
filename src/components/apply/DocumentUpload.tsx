@@ -7,7 +7,9 @@ import { useApplicationStore } from '@/store/application';
 import type { DocumentType } from '@/types';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { createClient } from '@/lib/supabase';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 interface DocumentUploadProps {
   docType: DocumentType;
@@ -21,6 +23,7 @@ export default function DocumentUpload({ docType, label, description }: Document
 
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const fileUrl = watch(docType);
 
@@ -36,45 +39,61 @@ export default function DocumentUpload({ docType, label, description }: Document
             return;
         }
 
+        if (file.size > MAX_FILE_SIZE) {
+            toast.error(`Failed to upload ${label}.`, { description: 'Max file size is 5MB.' });
+            event.target.value = '';
+            return;
+        }
+
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+            toast.error(`Failed to upload ${label}.`, { description: 'Unsupported file type.' });
+            event.target.value = '';
+            return;
+        }
+
         setIsUploading(true);
         setError(null);
 
         try {
-            const supabase = createClient();
-            const filePath = `${applicantCnic.replace(/-/g, '')}/${docType}-${Date.now()}-${file.name}`;
-            
-            const { error: uploadError } = await supabase.storage
-                .from('admission-documents')
-                .upload(filePath, file, {
-                    cacheControl: '3600',
-                    upsert: false,
-                    contentType: file.type,
-                });
-            
-            if (uploadError) {
-                throw uploadError;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('docType', docType);
+            formData.append('cnic', applicantCnic);
+
+            const response = await fetch('/api/upload-document', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Upload failed');
             }
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('admission-documents')
-                .getPublicUrl(filePath);
-
-            setValue(docType, publicUrl, { shouldValidate: true });
+            setValue(docType, result.filePath, { shouldValidate: true });
+            setPreviewUrl(result.signedUrl);
             toast.success(`${label} uploaded successfully.`);
         } catch (error: any) {
             console.error("Upload failed", error);
             setError(error.message || 'Upload failed');
             toast.error(`Failed to upload ${label}.`, { description: error.message });
             setValue(docType, '', { shouldValidate: true });
+            setPreviewUrl(null);
         } finally {
             setIsUploading(false);
+            event.target.value = '';
         }
     };
     
-    const getFileName = (url: string) => {
+    const getFileName = (value: string) => {
         try {
-            const path = new URL(url).pathname.split('/').pop();
-            return path ? decodeURIComponent(path).substring(14) : 'uploaded-file';
+            if (value.startsWith('http://') || value.startsWith('https://')) {
+                const path = new URL(value).pathname.split('/').pop();
+                return path ? decodeURIComponent(path).replace(/^\d+-/, '') : 'uploaded-file';
+            }
+            const fileName = value.split('/').pop();
+            return fileName ? decodeURIComponent(fileName).replace(/^\d+-/, '') : 'uploaded-file';
         } catch {
             return 'uploaded-file';
         }
@@ -96,7 +115,9 @@ export default function DocumentUpload({ docType, label, description }: Document
                 <div className="flex items-center gap-2 text-green-600 border rounded-md p-3 bg-green-50/50">
                     <CheckCircle2 className="h-5 w-5" />
                     <p className="text-sm font-medium truncate max-w-[200px]">{getFileName(fileUrl)}</p>
-                    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm underline">View</a>
+                                        {previewUrl && (
+                                            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm underline">View</a>
+                                        )}
                 </div>
             )}
             

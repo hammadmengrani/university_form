@@ -6,19 +6,14 @@ import { Info } from 'lucide-react';
 
 const documentFields = [
   { docType: 'cnic_copy', label: 'CNIC / B-Form Copy', description: 'Clear, readable copy of both sides.' },
-  { docType: 'matric_cert', label: 'Matric / O-Level Certificate', description: 'Your 10th grade certificate or equivalent.' },
-  { docType: 'fsc_cert', label: 'F.Sc / A-Level Certificate', description: 'Your 12th grade certificate or equivalent.' },
-  { docType: 'domicile', label: 'Domicile Certificate', description: 'Certificate of your local residence.' },
-  { docType: 'photos', label: 'Passport-size Photographs', description: 'Recent photos with a blue background.' },
   { docType: 'challan', label: 'Bank Challan / Fee Voucher', description: 'Scanned copy of the paid application fee challan.' },
-  { docType: 'character_cert', label: 'Character Certificate (Optional)', description: 'From your last attended institution.' },
 ] as const;
 
 
 export default function DocumentsStep() {
   return (
     <div className="space-y-8">
-       <h2 className="text-2xl font-semibold">Upload Required Documents</h2>
+      <h2 className="text-2xl font-semibold">Upload Required Documents (2 Only)</h2>
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Important</AlertTitle>

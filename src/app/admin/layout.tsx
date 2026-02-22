@@ -8,7 +8,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createServerComponentClient();
+  const supabase = await createServerComponentClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

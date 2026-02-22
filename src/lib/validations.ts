@@ -14,7 +14,7 @@ export const personalInfoSchema = z.object({
   last_name: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   father_name: z.string().min(2, { message: "Father's name is required." }),
   cnic: z.string().regex(/^\d{5}-\d{7}-\d$/, { message: "Invalid CNIC format. Use XXXXX-XXXXXXX-X." }),
-  date_of_birth: z.date({ required_error: "Date of birth is required." }),
+  date_of_birth: z.coerce.date({ required_error: "Date of birth is required." }),
   gender: z.string({ required_error: "Gender is required." }),
   religion: z.string().optional(),
   email: z.string().email({ message: "Invalid email address." }),
@@ -34,14 +34,6 @@ export const academicInfoSchema = z.object({
   result_status: z.enum(['Pass', 'Awaiting Result']),
   roll_number: z.string().optional(),
   extra_activities: z.string().optional(),
-}).refine(data => {
-    if(data.total_marks) {
-        return data.obtained_marks <= data.total_marks;
-    }
-    return true;
-}, {
-    message: "Obtained marks cannot be greater than total marks.",
-    path: ['obtained_marks']
 });
 
 export const programInfoSchema = z.object({
@@ -56,10 +48,10 @@ export const programInfoSchema = z.object({
 
 export const documentsSchema = z.object({
   cnic_copy: z.string({ required_error: 'CNIC copy is required.' }),
-  matric_cert: z.string({ required_error: 'Matric certificate is required.' }),
-  fsc_cert: z.string({ required_error: 'FSc certificate is required.' }),
-  domicile: z.string({ required_error: 'Domicile certificate is required.' }),
-  photos: z.string({ required_error: 'Passport photos are required.' }),
+  matric_cert: z.string().optional(),
+  fsc_cert: z.string().optional(),
+  domicile: z.string().optional(),
+  photos: z.string().optional(),
   challan: z.string({ required_error: 'Bank challan is required.' }),
   character_cert: z.string().optional(),
 });
@@ -67,7 +59,7 @@ export const documentsSchema = z.object({
 
 export const declarationSchema = z.object({
   signature_name: z.string().min(3, { message: "Signature is required." }),
-  signature_date: z.date(),
+  signature_date: z.coerce.date(),
   declaration_agreed: z.boolean().refine(val => val === true, { message: "You must agree to the declaration." }),
   // The 3 checkboxes will be handled by a single 'declaration_agreed' state in the form.
   // We'll have 3 separate checkbox UI elements that all need to be checked to set this to true.
@@ -75,10 +67,23 @@ export const declarationSchema = z.object({
 
 // This combines all schemas for the final submission
 export const applicationSchema = personalInfoSchema
-  .merge(academicInfoSchema)
-  .merge(programInfoSchema)
-  .merge(documentsSchema)
-  .merge(declarationSchema);
+  .and(academicInfoSchema)
+  .and(programInfoSchema)
+  .and(documentsSchema)
+  .and(declarationSchema)
+  .superRefine((data, ctx) => {
+    if (
+      typeof data.total_marks === 'number' &&
+      typeof data.obtained_marks === 'number' &&
+      data.obtained_marks > data.total_marks
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Obtained marks cannot be greater than total marks.',
+        path: ['obtained_marks'],
+      });
+    }
+  });
   
 export type PersonalInfoData = z.infer<typeof personalInfoSchema>;
 export type AcademicInfoData = z.infer<typeof academicInfoSchema>;

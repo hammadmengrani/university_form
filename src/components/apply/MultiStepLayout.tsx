@@ -20,11 +20,23 @@ import DeclarationStep from "./DeclarationStep";
 import { Button } from "@/components/ui/button";
 
 const steps: Step[] = [
-  { id: 1, name: "Personal Information", fields: ['first_name', 'last_name', 'father_name', 'cnic', 'date_of_birth', 'gender', 'email', 'phone', 'address', 'city'] },
-  { id: 2, name: "Academic Background", fields: ['qualification', 'board_institute', 'passing_year', 'obtained_marks', 'result_status'] },
-  { id: 3, name: "Program Selection", fields: ['faculty', 'program', 'selected_subjects', 'emergency_contact_name', 'emergency_contact_phone'] },
-  { id: 4, name: "Document Upload", fields: ['cnic_copy', 'matric_cert', 'fsc_cert', 'domicile', 'photos', 'challan'] },
-  { id: 5, name: "Declaration & Submit" },
+  {
+    id: 1,
+    name: "Personal & Academic",
+    fields: [
+      'first_name', 'last_name', 'father_name', 'cnic', 'date_of_birth', 'gender', 'email', 'phone', 'address', 'city',
+      'qualification', 'board_institute', 'passing_year', 'obtained_marks', 'result_status'
+    ]
+  },
+  {
+    id: 2,
+    name: "Program & Documents",
+    fields: [
+      'faculty', 'program', 'selected_subjects', 'emergency_contact_name', 'emergency_contact_phone',
+      'cnic_copy', 'challan'
+    ]
+  },
+  { id: 3, name: "Declaration & Submit", fields: ['signature_name', 'declaration_agreed'] },
 ];
 
 export default function MultiStepLayout() {
@@ -47,9 +59,7 @@ export default function MultiStepLayout() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Sync form with zustand store on mount
-    methods.reset(formData);
-  }, [methods, formData]);
+  }, []);
   
   // Subscribe to form changes and update zustand store
   useEffect(() => {
@@ -134,11 +144,19 @@ export default function MultiStepLayout() {
         </div>
         <div className="p-6">
           <form onSubmit={(e) => e.preventDefault()}>
-            {currentStep === 1 && <PersonalInfoStep />}
-            {currentStep === 2 && <AcademicInfoStep />}
-            {currentStep === 3 && <ProgramStep />}
-            {currentStep === 4 && <DocumentsStep />}
-            {currentStep === 5 && <DeclarationStep />}
+            {currentStep === 1 && (
+              <div className="space-y-10">
+                <PersonalInfoStep />
+                <AcademicInfoStep />
+              </div>
+            )}
+            {currentStep === 2 && (
+              <div className="space-y-10">
+                <ProgramStep />
+                <DocumentsStep />
+              </div>
+            )}
+            {currentStep === 3 && <DeclarationStep />}
           </form>
         </div>
         <div className="flex justify-between p-6 border-t bg-secondary/30 rounded-b-lg">

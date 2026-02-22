@@ -164,8 +164,12 @@ create policy "Staff can view all reviews"
   on public.application_reviews for select
   using ( (get_my_role() in ('admin', 'reviewer', 'data_entry')) );
 
-create policy "Admins can update or delete reviews"
-  on public.application_reviews for update, delete
+create policy "Admins can update reviews"
+  on public.application_reviews for update
+  using ( get_my_role() = 'admin' );
+
+create policy "Admins can delete reviews"
+  on public.application_reviews for delete
   using ( get_my_role() = 'admin' );
 
 -- Policies for `audit_logs` table
