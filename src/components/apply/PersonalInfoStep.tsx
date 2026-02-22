@@ -133,7 +133,7 @@ export default function PersonalInfoStep() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gender</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your gender" />

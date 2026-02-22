@@ -58,7 +58,7 @@ export default function ProgramStep() {
               <Select onValueChange={(value) => {
                   field.onChange(value);
                   setValue('program', ''); // Reset program on faculty change
-              }} value={field.value}>
+              }} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a faculty" />
@@ -80,7 +80,7 @@ export default function ProgramStep() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Program</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value} disabled={!selectedFaculty}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedFaculty}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a program" />
@@ -103,7 +103,7 @@ export default function ProgramStep() {
                 <FormItem className="space-y-3">
                     <FormLabel>Study Mode</FormLabel>
                     <FormControl>
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4">
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4">
                             <FormItem className="flex items-center space-x-2 space-y-0">
                                 <FormControl><RadioGroupItem value="Morning" /></FormControl>
                                 <FormLabel className="font-normal">Morning</FormLabel>
@@ -125,7 +125,7 @@ export default function ProgramStep() {
                 <FormItem className="space-y-3">
                     <FormLabel>Admission Type</FormLabel>
                     <FormControl>
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex items-center space-x-4">
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex items-center space-x-4">
                             <FormItem className="flex items-center space-x-2 space-y-0">
                                 <FormControl><RadioGroupItem value="Regular" /></FormControl>
                                 <FormLabel className="font-normal">Regular</FormLabel>

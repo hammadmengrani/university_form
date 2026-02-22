@@ -31,8 +31,10 @@ export default function DeclarationStep() {
   }, [agree1, agree2, agree3, setValue]);
 
   useEffect(() => {
-    setValue('signature_date', new Date().toISOString());
-  }, [setValue]);
+    // Set the date only once on component mount to prevent infinite loops
+    setValue('signature_date', new Date());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">
